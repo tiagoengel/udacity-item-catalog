@@ -12,7 +12,7 @@ class Google():
     """Google oauth provider.
 
     Oauth provider that uses google oauth2
-    to sing in users.
+    to sign in users.
     """
 
     SECRETS_FILE = os.path.join(os.path.dirname(__file__),
