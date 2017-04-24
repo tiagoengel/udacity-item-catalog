@@ -7,10 +7,11 @@ import json
 from catalog.auth import oauth, providers
 from test import support
 
+fake_code = 'ZmFrZWZha2VmYWs='
+
 
 class OauthFlowTest(unittest.TestCase):
     def test_google_provider(self):
-        fake_code = 'ZmFrZWZha2VmYWs='
         flow = oauth.OauthFlow(provider=providers.Google())
         jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ"  # noqa
 
@@ -45,8 +46,22 @@ class OauthFlowTest(unittest.TestCase):
             )
         ))
 
+    def test_google_provider_raises_error_with_info(self):
+        mock_def = {'*': (200, {"error": "there's an error"})}
+
+        request_mocker = support.request_mocker(mock_def)
+        mocked_request = mock.Mock(side_effect=request_mocker)
+
+        flow = oauth.OauthFlow(provider=providers.Google())
+
+        @mock.patch.object(httplib2.Http, "request", mocked_request)
+        def authenticate():
+            return flow.authenticate(fake_code)
+
+        with self.assertRaisesRegex(oauth.OauthError, 'google: '):
+            authenticate()
+
     def test_facebook_provider(self):
-        fake_code = 'ZmFrZWZha2VmYWs='
         flow = oauth.OauthFlow(provider=providers.Facebook())
 
         mock_def = {'https://graph.facebook.com/v2.8/me':
@@ -77,3 +92,18 @@ class OauthFlowTest(unittest.TestCase):
                 user_id="1234567890"
             )
         ))
+
+    def test_facebook_provider_raises_error_with_info(self):
+        mock_def = {'*': (200, {"error": "there's an error"})}
+
+        request_mocker = support.request_mocker(mock_def)
+        mocked_request = mock.Mock(side_effect=request_mocker)
+
+        flow = oauth.OauthFlow(provider=providers.Facebook())
+
+        @mock.patch.object(httplib2.Http, "request", mocked_request)
+        def authenticate():
+            return flow.authenticate(fake_code)
+
+        with self.assertRaisesRegex(oauth.OauthError, 'facebook: '):
+            authenticate()
