@@ -1,10 +1,9 @@
 import json
 import httplib2
+import os
 
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
-import os
-
 from catalog.auth import oauth
 
 
@@ -18,8 +17,7 @@ class Google():
     SECRETS_FILE = os.path.join(os.path.dirname(__file__),
                                 'google_client_secrets.json')
 
-    CLIENT_ID = json.loads(
-        open(SECRETS_FILE, 'r').read())['web']['client_id']
+    CLIENT_ID = json.loads(open(SECRETS_FILE, 'r').read())['web']['client_id']
 
     NAME = 'google'
 
@@ -67,4 +65,51 @@ class Google():
 
     def extract_token(self, credentials):
         return credentials.access_token
+
+
+class Facebook():
+    """Facebook oauth2 provider.
+
+    Authenticates users using facebook oauth2 provider.
+    """
+
+    SECRETS_FILE = os.path.join(os.path.dirname(__file__),
+                                'fb_client_secrets.json')
+
+    SECRETS = json.loads(open(SECRETS_FILE, 'r').read())['web']
+    APP_ID = SECRETS['app_id']
+    APP_SECRET = SECRETS['app_secret']
+
+    NAME = 'Facebook'
+
+    def request_long_term_token(self, short_term_token):
+        url = ('https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s'  # noqa
+               % (Facebook.APP_ID, Facebook.APP_SECRET, short_term_token))
+        h = httplib2.Http()
+        credentials = json.loads(h.request(url, 'GET')[1])
+        if credentials.get('error'):
+            raise oauth.OauthError(Facebook.NAME, credentials['error'])
+
+        return credentials
+
+    def request_user_data(self, credentials):
+        token = self.extract_token(credentials)
+        user_info_url = 'https://graph.facebook.com/v2.8/me?access_token=%s&fields=name,id,email'  # noqa
+        h = httplib2.Http()
+        result = h.request((user_info_url % token), 'GET')[1]
+        user_data = json.loads(result)
+
+        picture_url = 'https://graph.facebook.com/v2.8/me/picture?access_token=%s&redirect=0&height=200&width=200'  # noqa
+        h = httplib2.Http()
+        result = h.request((picture_url % token), 'GET')[1]
+        picture = json.loads(result)
+
+        user_data['user_id'] = user_data['id']
+        del user_data['id']
+        user_data['picture'] = picture['data']['url']
+        return user_data
+
+    def extract_token(self, credentials):
+        return credentials["access_token"]
+
 
