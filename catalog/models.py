@@ -23,6 +23,10 @@ class Item(db.Model):
     def latest_10(cls):
         return db.session.query(Item).order_by(desc(Item.inserted_at)).limit(10)
 
+    @classmethod
+    def list_by_category(cls, category):
+        return db.session.query(Item).filter(Item.category == category).all()
+
 
 class Category(Base):
     __table__ = db.Table('categories',
