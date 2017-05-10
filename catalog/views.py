@@ -5,6 +5,11 @@ from catalog import app
 from catalog.auth import oauth, providers
 
 
+@app.route('/')
+def index():
+    return 'hey'
+
+
 @app.route('/oauth-connect/<string:provider_name>', methods=['POST'])
 def oauth_connect(provider_name):
     # TODO: cross foreign protection
@@ -21,15 +26,15 @@ def oauth_connect(provider_name):
     return ('', 204)
 
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 def disconnect():
     user = session['user']
     if not user:
         return redirect('/')
 
-    provider = getattr(providers, user.provider)
+    provider = getattr(providers, user['provider'])
     flow = oauth.OauthFlow(provider=provider.__new__(provider))
-    flow.revoke(user.access_token)
+    flow.revoke(user['access_token'], user['user_data']['user_id'])
     del session['user']
 
     return redirect('/')

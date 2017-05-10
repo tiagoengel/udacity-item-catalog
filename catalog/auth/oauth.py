@@ -14,6 +14,12 @@ class OauthFlow():
                     access_token=access_token,
                     user_data=user_data)
 
+    def revoke(self, token, user_id):
+        try:
+            self.provider.revoke(token, user_id)
+        except Exception as e:
+            raise OauthError('%s: %s' % (self.provider.NAME, str(e))) from e
+
 
 class OauthError(Exception):
     pass

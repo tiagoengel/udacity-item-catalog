@@ -11,7 +11,7 @@ import catalog.views
 
 from catalog import app
 from catalog.auth import providers
-from test import support
+from test import support, mocks
 
 
 class FlaskTest(unittest.TestCase):
@@ -20,58 +20,32 @@ class FlaskTest(unittest.TestCase):
         app.testing = True
         app.secret_key = 'testing'
 
-
-class ViewsTest(FlaskTest):
-    def test_connect_with_google(self):
-        jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ"  # noqa
-
-        mock_def = {'https://www.googleapis.com/oauth2/v1/userinfo':
-                    (200, {"name": "john",
-                           "email": "john@gmail.com",
-                           "picture": "john.png"}),
-                    '*':
-                    (200, {"access_token": "123456",
-                           "refresh_token": "new_token",
-                           # same as 'sub' on the JWT token
-                           "user_id": "1234567890",
-                           "expires_in": time.time(),
-                           "issued_to": providers.Google.CLIENT_ID,
-                           "id_token": jwt_token})}
-
-        request_mocker = support.request_mocker(mock_def)
-        mocked_request = mock.Mock(side_effect=request_mocker)
-
-        @mock.patch.object(httplib2.Http, "request", mocked_request)
+    def do_google_login(self):
+        @mock.patch.object(httplib2.Http, "request", mocks.google_oauth_mock())
         def authenticate():
             return self.app.post('/oauth-connect/Google',
                                  data=json.dumps(dict(token='123456')),
                                  content_type='application/json')
 
-        resp = authenticate()
-        self.assertEqual(resp.status_code, 204)
+        return authenticate()
 
-    def test_connect_with_facebook(self):
-        mock_def = {'https://graph.facebook.com/v2.8/me':
-                    (200, {"id": "1234567890",
-                           "name": "john",
-                           "email": "john@gmail.com",
-                           "picture": "john.png"}),
-                    'https://graph.facebook.com/oauth/access_token':
-                    (200, {"access_token": "123456",
-                           "expires_in": time.time()}),
-                    'https://graph.facebook.com/v2.8/me/picture':
-                    (200, {'data': {'url': 'john.png'}})}
-
-        request_mocker = support.request_mocker(mock_def)
-        mocked_request = mock.Mock(side_effect=request_mocker)
-
-        @mock.patch.object(httplib2.Http, "request", mocked_request)
+    def do_facebook_login(self):
+        @mock.patch.object(httplib2.Http, "request", mocks.facebook_oauth_mock())
         def authenticate():
             return self.app.post('/oauth-connect/Facebook',
                                  data=json.dumps(dict(token='123456')),
                                  content_type='application/json')
 
-        resp = authenticate()
+        return authenticate()
+
+
+class LoginLogoutTest(FlaskTest):
+    def test_connect_with_google(self):
+        resp = self.do_google_login()
+        self.assertEqual(resp.status_code, 204)
+
+    def test_connect_with_facebook(self):
+        resp = self.do_facebook_login()
         self.assertEqual(resp.status_code, 204)
 
     def test_connect_with_invalid_provider(self):
@@ -81,3 +55,11 @@ class ViewsTest(FlaskTest):
 
         self.assertEqual(resp.status_code, 401)
 
+    def test_logout(self):
+        self.do_google_login()
+
+        @mock.patch.object(httplib2.Http, "request", mocks.google_oauth_mock())
+        def logout():
+            return self.app.post('/logout')
+
+        self.assertEqual(logout().status_code, 302)

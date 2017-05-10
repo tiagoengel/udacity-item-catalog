@@ -19,7 +19,7 @@ class Google():
 
     CLIENT_ID = json.loads(open(SECRETS_FILE, 'r').read())['web']['client_id']
 
-    NAME = 'google'
+    NAME = 'Google'
 
     def request_long_term_token(self, short_term_token):
         try:
@@ -59,6 +59,14 @@ class Google():
     def extract_token(self, credentials):
         return credentials.access_token
 
+    def revoke(self, token, user_id):
+        url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % token
+        h = httplib2.Http()
+        result = h.request(url, 'GET')[0]
+        status = result['status']
+        if status != 200:
+            raise oauth.OauthError(('Unable to revoke token. [%s]' % status))
+
 
 class Facebook():
     """Facebook oauth2 provider.
@@ -73,7 +81,7 @@ class Facebook():
     APP_ID = SECRETS['app_id']
     APP_SECRET = SECRETS['app_secret']
 
-    NAME = 'facebook'
+    NAME = 'Facebook'
 
     def request_long_term_token(self, short_term_token):
         url = ('https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s'  # noqa
@@ -104,5 +112,14 @@ class Facebook():
 
     def extract_token(self, credentials):
         return credentials["access_token"]
+
+    def revoke(self, token, user_id):
+        url = ('https://graph.facebook.com/%s/permissions?access_token=%s'
+               % (user_id, token))
+        h = httplib2.Http()
+        result = h.request(url, 'DELETE')[0]
+        status = result['status']
+        if status != 200:
+            raise oauth.OauthError(('Unable to revoke token. [%s]' % status))
 
 
