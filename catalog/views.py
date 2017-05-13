@@ -2,7 +2,7 @@ import json
 
 from flask import make_response, session, request, redirect, render_template
 from catalog import app, db
-from catalog.models import Item, Categories
+from catalog.models import Item, Category
 from catalog.auth import oauth, providers
 
 
@@ -120,4 +120,18 @@ def update_item(id):
 
     return redirect('/%s/%s' % (item.category, item.title))
 
+
+# PAGES
+@app.route('/')
+def index():
+    latest_items = Item.latest_10()
+    categories = db.session.query(Category).all()
+    return render_template('index.html',
+                           latest_items=latest_items,
+                           categories=categories)
+
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
 
