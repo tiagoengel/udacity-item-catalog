@@ -99,5 +99,19 @@ class ItemsTest(FlaskTest):
 
         self.assertEqual(resp.status_code, 400)
 
+    def test_delete(self):
+        self.do_google_login()
+        db.session.add(Item(title='Foo', description='bar', category='FooBar'))
+        db.session.add(Item(title='Foo1', description='bar', category='FooBar'))
+        item = db.session.query(Item).first()
+
+        resp = self.app.post('/items/%s/delete' % (item.id))
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(db.session.query(Item).count(), 1)
+
+    def test_cant_delete_if_not_logedin(self):
+        resp = self.app.post('/items/1/delete')
+        self.assertEqual(resp.status_code, 401)
+
 
 

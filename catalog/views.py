@@ -13,6 +13,7 @@ def protected_resource(fn):
 
         return fn(*args, **kwargs)
 
+    inner.__name__ = '%s__protected' % (fn.__name__)
     return inner
 
 
@@ -82,4 +83,18 @@ def create_item():
     db.session.commit()
 
     return redirect('/%s/%s' % (category, title))
+
+
+@app.route('/items/<int:id>/delete', methods=['POST'])
+@protected_resource
+def delete_item(id):
+    item = db.session.query(Item).get(id)
+    if not item:
+        # TODO: return 404 page
+        return ('', 404)
+
+    db.session.delete(item)
+    db.session.commit()
+
+    return redirect('/')
 
