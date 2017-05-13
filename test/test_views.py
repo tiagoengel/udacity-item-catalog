@@ -9,7 +9,8 @@ from flask import session
 
 import catalog.views
 
-from catalog import app
+from catalog import app, db
+from catalog.models import Item
 from catalog.auth import providers
 from test import support, mocks
 
@@ -19,6 +20,9 @@ class FlaskTest(unittest.TestCase):
         self.app = app.test_client()
         app.testing = True
         app.secret_key = 'testing'
+        db.session.rollback()
+        db.session.query(Item).delete()
+        db.session.commit()
 
     def do_google_login(self):
         @mock.patch.object(httplib2.Http, "request", mocks.google_oauth_mock())
@@ -63,3 +67,37 @@ class LoginLogoutTest(FlaskTest):
             return self.app.post('/logout')
 
         self.assertEqual(logout().status_code, 302)
+
+
+class ItemsTest(FlaskTest):
+    def test_create(self):
+        self.do_google_login()
+        resp = self.app.post('/items/create',
+                             data=dict(title='Create item',
+                                       description='Test item',
+                                       category='Test'))
+
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(db.session.query(Item).count(), 1)
+        item = db.session.query(Item).first()
+        self.assertEqual(item.title, 'Create item')
+        self.assertEqual(item.description, 'Test item')
+        self.assertEqual(item.category, 'Test')
+
+    def test_cant_create_if_not_logedin(self):
+        resp = self.app.post('/items/create',
+                             data=dict(title='Create item',
+                                       description='Test item',
+                                       category='Test'))
+
+        self.assertEqual(resp.status_code, 401)
+
+    def test_cant_create_with_invalid_args(self):
+        self.do_google_login()
+        resp = self.app.post('/items/create',
+                             data=dict())
+
+        self.assertEqual(resp.status_code, 400)
+
+
+

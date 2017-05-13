@@ -1,8 +1,26 @@
 import json
 
-from flask import make_response, session, request, redirect
-from catalog import app
+from flask import make_response, session, request, redirect, render_template
+from catalog import app, db
+from catalog.models import Item
 from catalog.auth import oauth, providers
+
+
+def protected_resource(fn):
+    def inner(*args, **kwargs):
+        if not session.get('user'):
+            return ('', 401)
+
+        return fn(*args, **kwargs)
+
+    return inner
+
+
+def validates_required(data, field, errors):
+    if not data.get(field):
+        errors[field] = 'This field is required'
+
+    return errors
 
 
 @app.route('/')
@@ -38,3 +56,30 @@ def disconnect():
     del session['user']
 
     return redirect('/')
+
+
+@app.route('/items/create', methods=['POST'])
+@protected_resource
+def create_item():
+    data = request.form
+    errors = {}
+    validates_required(data, 'title', errors)
+    validates_required(data, 'description', errors)
+    validates_required(data, 'category', errors)
+
+    if len(errors.keys()):
+        return (render_template('edit.html', errors=errors), 400)
+
+    title = data['title']
+    category = data['category']
+    description = data['description']
+
+    new_item = Item(title=title,
+                    description=description,
+                    category=category)
+
+    db.session.add(new_item)
+    db.session.commit()
+
+    return redirect('/%s/%s' % (category, title))
+
