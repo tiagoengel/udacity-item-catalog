@@ -84,7 +84,7 @@ class ItemsTest(FlaskTest):
         self.assertEqual(item.description, 'Test item')
         self.assertEqual(item.category, 'Test')
 
-    def test_cant_create_if_not_logedin(self):
+    def test_cant_create_if_not_logged_in(self):
         resp = self.app.post('/items/create',
                              data=dict(title='Create item',
                                        description='Test item',
@@ -109,8 +109,29 @@ class ItemsTest(FlaskTest):
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(db.session.query(Item).count(), 1)
 
-    def test_cant_delete_if_not_logedin(self):
+    def test_cant_delete_if_not_logged_in(self):
         resp = self.app.post('/items/1/delete')
+        self.assertEqual(resp.status_code, 401)
+
+    def test_update(self):
+        self.do_google_login()
+        db.session.add(Item(title='Foo', description='bar', category='FooBar'))
+        item = db.session.query(Item).first()
+
+        resp = self.app.post(('/items/%s/update' % (item.id)),
+                             data=dict(title='Create item',
+                                       description='Test item',
+                                       category='Test'))
+
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(db.session.query(Item).count(), 1)
+        item = db.session.query(Item).first()
+        self.assertEqual(item.title, 'Create item')
+        self.assertEqual(item.description, 'Test item')
+        self.assertEqual(item.category, 'Test')
+
+    def test_cant_update_if_not_logged_in(self):
+        resp = self.app.post('/items/1/update')
         self.assertEqual(resp.status_code, 401)
 
 

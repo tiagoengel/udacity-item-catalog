@@ -2,7 +2,7 @@ import json
 
 from flask import make_response, session, request, redirect, render_template
 from catalog import app, db
-from catalog.models import Item
+from catalog.models import Item, Categories
 from catalog.auth import oauth, providers
 
 
@@ -22,11 +22,6 @@ def validates_required(data, field, errors):
         errors[field] = 'This field is required'
 
     return errors
-
-
-@app.route('/')
-def index():
-    return 'hey'
 
 
 @app.route('/oauth-connect/<string:provider_name>', methods=['POST'])
@@ -97,4 +92,32 @@ def delete_item(id):
     db.session.commit()
 
     return redirect('/')
+
+
+@app.route('/items/<int:id>/update', methods=['POST'])
+@protected_resource
+def update_item(id):
+    item = db.session.query(Item).get(id)
+    if not item:
+        # TODO: return 404 page
+        return ('', 404)
+
+    data = request.form
+    errors = {}
+    validates_required(data, 'title', errors)
+    validates_required(data, 'description', errors)
+    validates_required(data, 'category', errors)
+
+    if len(errors.keys()):
+        return (render_template('edit.html', errors=errors), 400)
+
+    item.title = data['title']
+    item.description = data['description']
+    item.category = data['category']
+
+    db.session.add(item)
+    db.session.commit()
+
+    return redirect('/%s/%s' % (item.category, item.title))
+
 
