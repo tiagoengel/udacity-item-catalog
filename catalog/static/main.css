@@ -1,4 +1,30 @@
-.modal {
-    align-items: flex-start;
-    padding-top: 40px;
+header {
+    border-top: 5px solid #455A64;
+}
+
+.user-profile {
+    padding: 10px 10px !important;
+}
+
+.user-profile__name {
+    margin-right: 8px;
+    font-weight: bold;
+}
+
+.user-profile__img {
+    max-height: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.latest-items {
+    border: 2px solid #455A64;
+}
+
+.latest-items h2 {
+    color: white;
+    background: #455A64;
+    margin-top: 0;
+    padding: 10px;
 }

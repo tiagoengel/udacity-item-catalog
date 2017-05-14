@@ -40,7 +40,7 @@ def oauth_connect(provider_name):
     return ('', 204)
 
 
-@app.route('/logout', methods=['POST'])
+@app.route('/logout', methods=['GET'])
 def disconnect():
     user = session['user']
     if not user:

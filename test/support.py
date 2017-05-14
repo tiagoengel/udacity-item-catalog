@@ -31,12 +31,14 @@ def request_mocker(mock_def):
         if not response:
             response = mock_def.get("*")
 
+        resp_bytes = str.encode(json.dumps(response[1]))
+
         http_response = httplib2.Response({
             "status": response[0],
-            "body": json.dumps(response[1]),
+            "body": resp_bytes,
         })
 
-        return (http_response, json.dumps(response[1]))
+        return (http_response, resp_bytes)
 
     return inner
 

@@ -2,14 +2,40 @@
 
 {% block content %}
 
-<div class="modal is-active">
-  <div class="modal-background"></div>
-  <div class="modal-content">
-    <div class="box">
-      <h2 class="title is-3"><strong>Sign In</strong></h2>
-    </div>
+<div class="modal fade">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <a href="/" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+        <h4 class="modal-title"><strong>Sign In</strong></h4>
+      </div>
+      <div class="modal-body">
+        <div id="signInButton">
+          <span class="g-signin"
+            data-scope="openid email"
+            data-clientid="784559703256-93th4q9e73n3rdi1lr66m0u6fp6i9tqq.apps.googleusercontent.com"
+            data-redirecturi="postmessage"
+            data-accesstype="offline"
+            data-cookiepolicy="single_host_origin"
+            data-callback="googleSignInCallback"
+            data-approvalprompt="force">
+          </span>
+        </div>
+        <fb:login-button scope="public_profile,email" onlogin="Oauth.Facebook.callback();">
+          <a href='javascript:Oauth.Facebook.callback()'>Login with Facebook</a>
+        </fb:login-button>
+
+        <div id="result"></div>
+      </div>
+    </siv>
   </div>
-  <a class="modal-close" href="/"></a>
 </div>
+
+{% endblock %}
+
+{% block js %}
+
+<script src="//apis.google.com/js/platform.js?onload=start"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='login.js') }}"></script>
 
 {% endblock %}

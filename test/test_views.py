@@ -64,7 +64,7 @@ class LoginLogoutTest(FlaskTest):
 
         @mock.patch.object(httplib2.Http, "request", mocks.google_oauth_mock())
         def logout():
-            return self.app.post('/logout')
+            return self.app.get('/logout')
 
         self.assertEqual(logout().status_code, 302)
 

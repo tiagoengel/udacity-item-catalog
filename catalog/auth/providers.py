@@ -1,11 +1,13 @@
 import json
 import httplib2
 import os
+import codecs
 
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 from catalog.auth import oauth
 
+reader = codecs.getreader("utf-8")
 
 class Google():
     """Google oauth provider.
@@ -37,7 +39,7 @@ class Google():
                % access_token)
 
         h = httplib2.Http()
-        result = json.loads(h.request(url, 'GET')[1])
+        result = json.loads((h.request(url, 'GET')[1]).decode('utf-8'))
         # If there was an error in the access token info, abort.
         if result.get('error') is not None:
             raise oauth.OauthError(result.get('error'))
@@ -52,7 +54,7 @@ class Google():
             raise oauth.OauthError("Token's user ID doesn't match given user ID.")
 
         info_url = "https://www.googleapis.com/oauth2/v1/userinfo?access_token=%s&alt=json"  # noqa
-        user_data = json.loads(h.request((info_url % access_token), 'GET')[1])
+        user_data = json.loads(h.request((info_url % access_token), 'GET')[1].decode('utf-8'))
         user_data["user_id"] = gplus_id
         return user_data
 
@@ -63,8 +65,8 @@ class Google():
         url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % token
         h = httplib2.Http()
         result = h.request(url, 'GET')[0]
-        status = result['status']
-        if status != 200:
+        status = int(result['status'])
+        if status != 200 and status != 400:
             raise oauth.OauthError(('Unable to revoke token. [%s]' % status))
 
 
@@ -87,7 +89,7 @@ class Facebook():
         url = ('https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s'  # noqa
                % (Facebook.APP_ID, Facebook.APP_SECRET, short_term_token))
         h = httplib2.Http()
-        credentials = json.loads(h.request(url, 'GET')[1])
+        credentials = json.loads((h.request(url, 'GET')[1]).decode('utf-8'))
         if credentials.get('error'):
             raise oauth.OauthError(credentials['error'])
 
@@ -97,12 +99,12 @@ class Facebook():
         token = self.extract_token(credentials)
         user_info_url = 'https://graph.facebook.com/v2.8/me?access_token=%s&fields=name,id,email'  # noqa
         h = httplib2.Http()
-        result = h.request((user_info_url % token), 'GET')[1]
+        result = (h.request((user_info_url % token), 'GET')[1]).decode('utf-8')
         user_data = json.loads(result)
 
         picture_url = 'https://graph.facebook.com/v2.8/me/picture?access_token=%s&redirect=0&height=200&width=200'  # noqa
         h = httplib2.Http()
-        result = h.request((picture_url % token), 'GET')[1]
+        result = (h.request((picture_url % token), 'GET')[1]).decode('utf-8')
         picture = json.loads(result)
 
         user_data['user_id'] = user_data['id']
@@ -118,8 +120,8 @@ class Facebook():
                % (user_id, token))
         h = httplib2.Http()
         result = h.request(url, 'DELETE')[0]
-        status = result['status']
-        if status != 200:
+        status = int(result['status'])
+        if status != 200 and status != 400:
             raise oauth.OauthError(('Unable to revoke token. [%s]' % status))
 
 
