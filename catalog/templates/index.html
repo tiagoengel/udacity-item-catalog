@@ -1,16 +1,33 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<div class="row">
+  <div class="col-md-8">
+    <div class="row">
+    {% for category in categories %}
+      <div class="col-md-4 col-sm-6">
+        <div class="category-card">
+          <a class="category-card__item-title" href="#"> {{category.category}} </a>
+          <div class="category-card__item-count">
+            <p>23</p>
+            <p>items</p>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+  </div>
 
-<div class="col-md-8">
-</div>
-
-<div class="col-md-4 latest-items">
-    <h2>Latest Items</h2>
-    <ul>
-      <li>Foo</li>
-      <li>Foo2</li>
-    </ul>
+  <div class="col-md-4">
+    <div class="latest-items">
+      <h2>Latest Items</h2>
+      <ul>
+      {% for item in latest_items %}
+        <li><a href="#">{{item.title}}</a> <small>({{item.category}}) </small></li>
+      {% endfor %}
+      </ul>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

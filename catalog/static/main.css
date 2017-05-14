@@ -21,20 +21,41 @@ header {
 .latest-items {
     border: 2px solid #455A64;
     padding: 0;
+    border-radius: 3px;
 }
 
 .latest-items h2 {
     text-align: center;
     color: white;
     background: #455A64;
-    margin-top: 0;
+    margin: 0;
+    margin-bottom: 5px;
     padding: 10px;
 }
 
 .latest-items ul {
     list-style: none;
-    padding: 0 15px;
+    padding: 0;
     font-size: 18px;
+    margin: 0;
+    margin-bottom: 5px;
+}
+
+.latest-items li small {
+    color: grey;
+    font-style: italic;
+}
+
+.latest-items li:not(:last-child) {
+    border-bottom: 1px solid #cecece;
+}
+
+.latest-items li {
+  padding: 5px 0;
+}
+
+.latest-items li a {
+    padding-left: 15px;
 }
 
 .login-modal {
@@ -44,4 +65,36 @@ header {
 
 .login-modal .modal-content {
     width: 300px;
+}
+
+.category-card {
+    position: relative;
+    padding: 10px 15px;
+    border: 1px solid #cecece;
+    margin-bottom: 10px;
+    border-radius: 3px;
+    font-size: 18px;
+}
+
+.category-card__item-count {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    background: #F8F8F8;
+    border-left: 1px solid #cecece;
+    padding: 2px 5px;
+}
+
+.category-card__item-count p {
+    margin: 0;
+}
+
+.category-card__item-count p:first-child {
+    text-align: center;
+}
+
+.category-card__item-count p:last-child {
+    text-align: center;
+    font-size: 12px;
 }
