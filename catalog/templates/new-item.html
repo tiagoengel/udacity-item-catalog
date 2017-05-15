@@ -2,29 +2,56 @@
 
 {% block content %}
 
-<form action="/items/create" method="POST">
-  <div class="form-group{{ ' has-error' if errors and errors.get('title') else '' }}">
-    <label for="title">Title</label>
-    <input type="text" class="form-control" id="title" placeholder="Title" name="title" aria-describedby="title-help" />
-    {%if errors and errors.get('title') %}
-      <span id="title-help" class="help-block">{{ errors['title'] }}</span>
-    {% endif %}
-  </div>
-  <div class="form-group{{ ' has-error' if errors and errors.get('description') else '' }}">
-    <label for="description">Description</label>
-    <textarea class="form-control" id="description" placeholder="Description" name="description" aria-describedby="description-help"></textarea>
-    {%if errors and errors.get('description') %}
-      <span id="description-help" class="help-block">{{ errors['description'] }}</span>
-    {% endif %}
-  </div>
-  <div class="form-group{{ ' has-error' if errors and errors.get('category') else '' }}">
-    <label for="category">Category</label>
-    <input type="text" class="form-control" id="category" name="category" placeholder="Category" aria-describedby="category-help" />
-    {%if errors and errors.get('category') %}
-      <span id="category-help" class="help-block">{{ errors['category'] }}</span>
-    {% endif %}
-  </div>
-  <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+<div class="edit-item">
+  {% if item and item.id %}
+  <form action="{{url_for('update_item', id=item.id ) }}" method="POST">
+  {% else %}
+  <form action="{{url_for('create_item') }}" method="POST">
+  {% endif %}
+    <div class="form-group{{ ' has-error' if errors and errors.get('title') else '' }}">
+      <label for="title">Title</label>
+      <input
+        type="text"
+        class="form-control"
+        id="title"
+        placeholder="Title"
+        name="title"
+        aria-describedby="title-help"
+        value="{{ item.title if item else '' }}"
+      />
+      {%if errors and errors.get('title') %}
+        <span id="title-help" class="help-block">{{ errors['title'] }}</span>
+      {% endif %}
+    </div>
+    <div class="form-group{{ ' has-error' if errors and errors.get('description') else '' }}">
+      <label for="description">Description</label>
+      <textarea
+        class="form-control"
+        id="description"
+        placeholder="Description"
+        name="description"
+        aria-describedby="description-help">{{ item.description if item else '' }}</textarea>
+      {%if errors and errors.get('description') %}
+        <span id="description-help" class="help-block">{{ errors['description'] }}</span>
+      {% endif %}
+    </div>
+    <div class="form-group{{ ' has-error' if errors and errors.get('category') else '' }}">
+      <label for="category">Category</label>
+      <input
+        type="text"
+        class="form-control"
+        id="category"
+        name="category"
+        placeholder="Category"
+        aria-describedby="category-help"
+        value="{{ item.category if item else '' }}"
+      />
+      {%if errors and errors.get('category') %}
+        <span id="category-help" class="help-block">{{ errors['category'] }}</span>
+      {% endif %}
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</div>
 
 {% endblock %}

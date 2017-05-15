@@ -112,3 +112,7 @@ header {
     right: 0;
     top: 0;
 }
+
+.edit-item textarea {
+    height: 200px;
+}

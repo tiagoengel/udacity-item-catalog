@@ -1,6 +1,6 @@
 import json
 
-from flask import make_response, session, request, redirect, render_template
+from flask import make_response, session, request, redirect, render_template, url_for
 from catalog import app, db
 from catalog.models import Item, Category
 from catalog.auth import oauth, providers
@@ -13,7 +13,7 @@ def protected_resource(fn):
 
         return fn(*args, **kwargs)
 
-    inner.__name__ = '%s__protected' % (fn.__name__)
+    inner.__name__ = fn.__name__
     return inner
 
 
@@ -77,7 +77,7 @@ def create_item():
     db.session.add(new_item)
     db.session.commit()
 
-    return redirect('/%s/%s' % (category, title))
+    return redirect(url_for('show_item_page', item_id=new_item.id))
 
 
 @app.route('/items/<int:id>/delete', methods=['POST'])
@@ -118,7 +118,7 @@ def update_item(id):
     db.session.add(item)
     db.session.commit()
 
-    return redirect('/%s/%s' % (item.category, item.id))
+    return redirect(url_for('show_item_page', item_id=item.id))
 
 
 # PAGES
@@ -136,7 +136,7 @@ def create_item_page():
     return render_template('new-item.html')
 
 
-@app.route('/items/<int:item_id>/create')
+@app.route('/items/<int:item_id>/show')
 def show_item_page(item_id):
     item = db.session.query(Item).get(item_id)
     if not item:
@@ -144,4 +144,14 @@ def show_item_page(item_id):
         return ('', 404)
 
     return render_template('show-item.html', item=item)
+
+
+@app.route('/items/<int:item_id>/edit')
+def edit_item_page(item_id):
+    item = db.session.query(Item).get(item_id)
+    if not item:
+        #TODO: 404 page
+        return ('', 404)
+
+    return render_template('new-item.html', item=item)
 
