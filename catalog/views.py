@@ -64,7 +64,7 @@ def create_item():
     validates_required(data, 'category', errors)
 
     if len(errors.keys()):
-        return (render_template('edit.html', errors=errors), 400)
+        return (render_template('new-item.html', errors=errors), 400)
 
     title = data['title']
     category = data['category']
@@ -131,7 +131,7 @@ def index():
                            categories=categories)
 
 
-@app.route('/login')
-def login():
-    return render_template('login.html')
+@app.route('/items/create')
+def create_item_page():
+    return render_template('new-item.html')
 
