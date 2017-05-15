@@ -23,7 +23,7 @@
       <h2>Latest Items</h2>
       <ul>
       {% for item in latest_items %}
-        <li><a href="#">{{item.title}}</a> <small>({{item.category}}) </small></li>
+        <li><a href="{{url_for('show_item_page', item_id=item.id ) }}">{{item.title}}</a> <small>({{item.category}}) </small></li>
       {% endfor %}
       </ul>
     </div>

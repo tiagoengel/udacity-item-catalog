@@ -98,3 +98,17 @@ header {
     text-align: center;
     font-size: 12px;
 }
+
+.item {
+    font-size: 18px;
+}
+
+.item__title {
+    position: relative;
+}
+
+.item__controls {
+    position: absolute;
+    right: 0;
+    top: 0;
+}

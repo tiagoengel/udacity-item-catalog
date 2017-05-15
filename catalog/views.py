@@ -118,7 +118,7 @@ def update_item(id):
     db.session.add(item)
     db.session.commit()
 
-    return redirect('/%s/%s' % (item.category, item.title))
+    return redirect('/%s/%s' % (item.category, item.id))
 
 
 # PAGES
@@ -134,4 +134,14 @@ def index():
 @app.route('/items/create')
 def create_item_page():
     return render_template('new-item.html')
+
+
+@app.route('/items/<int:item_id>/create')
+def show_item_page(item_id):
+    item = db.session.query(Item).get(item_id)
+    if not item:
+        #TODO: 404 page
+        return ('', 404)
+
+    return render_template('show-item.html', item=item)
 
