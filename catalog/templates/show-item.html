@@ -8,11 +8,32 @@
     {% if session.get('user') %}
       <div class="item__controls">
         <a href="{{url_for('edit_item_page', item_id=item.id ) }}" class="btn btn-primary">Edit</a>
-        <a href="#" class="btn btn-danger">Delete</a>
+        <a data-toggle="modal" data-target="#delete-item-modal" href="#" class="btn btn-danger">Delete</a>
       </div>
     {% endif %}
   </div>
   <p>{{ item.description }}</p>
+</div>
+
+
+<div id="delete-item-modal" class="modal fade">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <a href="#" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+        <h4 class="modal-title"><strong>Are you sure?</strong></h4>
+      </div>
+      <div class="modal-body clearfix">
+        <div class="pull-right">
+          <form action="{{url_for('delete_item', id=item.id ) }}" method="POST">
+            <a href="#" class="btn btn-default" data-dismiss="modal" aria-label="Cancel">Cancel</a>
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </div>
+        <div id="result"></div>
+      </div>
+    </siv>
+  </div>
 </div>
 
 {% endblock %}
