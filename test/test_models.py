@@ -61,4 +61,16 @@ class CategoryTest(unittest.TestCase):
 
         self.assertEqual(db.session.query(Category).count(), 4)
 
+    def test_item_count(self):
+        create_items()
+
+        category = db.session.query(Category).get('c4')
+        self.assertEqual(category.item_count(), 4)
+
+        item = db.session.query(Item).filter(Item.category == 'c4').first()
+        db.session.delete(item)
+        db.session.commit()
+
+        self.assertEqual(category.item_count(), 3)
+
 

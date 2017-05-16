@@ -34,3 +34,6 @@ class Category(Base):
                          db.Column('category', db.String(80), primary_key=True),
                          autoload=True,
                          autoload_with=db.engine)
+
+    def item_count(self):
+        return db.session.query(Item).filter(Item.category == self.category).count()
