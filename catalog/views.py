@@ -1,6 +1,8 @@
 import json
 
 from flask import make_response, session, request, redirect, render_template, url_for
+from sqlalchemy.exc import IntegrityError
+
 from catalog import app, db
 from catalog.models import Item, Category
 from catalog.auth import oauth, providers
@@ -64,7 +66,7 @@ def create_item():
     validates_required(data, 'category', errors)
 
     if len(errors.keys()):
-        return (render_template('new-item.html', errors=errors), 400)
+        return (render_template('new-item.html', errors=errors, item=data), 400)
 
     title = data['title']
     category = data['category']
@@ -73,11 +75,17 @@ def create_item():
     new_item = Item(title=title,
                     description=description,
                     category=category)
+    try:
+        db.session.add(new_item)
+        db.session.commit()
 
-    db.session.add(new_item)
-    db.session.commit()
-
-    return redirect(url_for('show_item_page', item_id=new_item.id))
+        return redirect(url_for('show_item_page', item_id=new_item.id))
+    except IntegrityError:
+        errors['title'] = """
+        There is already an item with this title/category in the database.
+        Try a different title.
+        """
+        return (render_template('new-item.html', errors=errors, item=data), 400)
 
 
 @app.route('/items/<int:id>/delete', methods=['POST'])
