@@ -27,6 +27,16 @@ class Item(db.Model):
     def list_by_category(cls, category):
         return db.session.query(Item).filter(Item.category == category).all()
 
+    @property
+    def serialize(self):
+        """Return object data in easily serializeable format"""
+        return {
+           'title': self.title,
+           'description': self.description,
+           'id': self.id,
+           'category': self.category
+        }
+
 
 class Category(Base):
     __table__ = db.Table('categories',

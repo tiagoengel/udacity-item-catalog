@@ -163,3 +163,10 @@ def edit_item_page(item_id):
 
     return render_template('new-item.html', item=item)
 
+
+# JSON endpoints
+@app.route('/<string:category>/items')
+def list_items_for_category(category):
+    items = Item.list_by_category(category)
+    return json.dumps(items, default=lambda o: o.serialize)
+
