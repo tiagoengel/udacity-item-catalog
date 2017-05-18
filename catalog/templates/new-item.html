@@ -51,6 +51,7 @@
         <span id="category-help" class="help-block">{{ errors['category'] }}</span>
       {% endif %}
     </div>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 </div>
