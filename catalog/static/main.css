@@ -132,8 +132,16 @@ header {
     top: 0;
 }
 
-.edit-item textarea {
+.new-item textarea {
     height: 200px;
+}
+
+.new-item .form-group {
+    position: relative;
+}
+
+.typeahead.dropdown-menu {
+    width: 100%;
 }
 
 #selected-category-items {

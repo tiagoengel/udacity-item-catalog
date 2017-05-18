@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div class="edit-item">
+<div class="new-item">
   {% if item and item.id %}
   <form action="{{url_for('update_item', id=item.id ) }}" method="POST">
   {% else %}
@@ -44,6 +44,7 @@
         name="category"
         placeholder="Category"
         aria-describedby="category-help"
+        autocomplete="off"
         value="{{ item.category if item else '' }}"
       />
       {%if errors and errors.get('category') %}
@@ -53,5 +54,13 @@
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 </div>
+
+{% endblock %}
+
+{% block js %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/corejs-typeahead/1.1.1/bloodhound.min.js"></script>
+<script src="{{ url_for('static', filename='edit-page.js') }}"></script>
 
 {% endblock %}

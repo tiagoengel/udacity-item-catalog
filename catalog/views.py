@@ -117,7 +117,8 @@ def update_item(id):
     validates_required(data, 'category', errors)
 
     if len(errors.keys()):
-        return (render_template('edit.html', errors=errors), 400)
+        return (render_template('new-item.html',
+                                errors=errors), 400)
 
     item.title = data['title']
     item.description = data['description']
@@ -169,4 +170,10 @@ def edit_item_page(item_id):
 def list_items_for_category(category):
     items = Item.list_by_category(category)
     return json.dumps(items, default=lambda o: o.serialize)
+
+
+@app.route('/catalog')
+def list_categories():
+    categories = db.session.query(Category).all()
+    return json.dumps(categories, default=lambda o: o.category)
 
