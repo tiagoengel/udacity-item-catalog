@@ -1,6 +1,5 @@
 from os import environ
 from flask import Flask
-from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -11,5 +10,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-csrf = CSRFProtect()
-csrf.init_app(app)
+if environ.get('ENV') != 'test':
+    from flask_wtf.csrf import CSRFProtect
+    csrf = CSRFProtect()
+    csrf.init_app(app)
+else:
+    app.jinja_env.globals['csrf_token'] = lambda: 'test'
