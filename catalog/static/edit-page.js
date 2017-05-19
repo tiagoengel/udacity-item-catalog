@@ -2,7 +2,7 @@
   var categories = new Bloodhound({
     datumTokenizer: Bloodhound.tokenizers.whitespace,
     queryTokenizer: Bloodhound.tokenizers.whitespace,
-    prefetch: '/catalog'
+    prefetch: '/catalog/categories.json'
   });
 
   categories.initialize();

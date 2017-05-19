@@ -1,6 +1,6 @@
 import json
 
-from flask import make_response, session, request, redirect, render_template, url_for
+from flask import make_response, session, request, redirect, render_template, url_for, jsonify
 from sqlalchemy.exc import IntegrityError
 
 from catalog import app, db
@@ -28,7 +28,6 @@ def validates_required(data, field, errors):
 
 @app.route('/oauth-connect/<string:provider_name>', methods=['POST'])
 def oauth_connect(provider_name):
-    # TODO: cross foreign protection
     try:
         provider = getattr(providers, provider_name)
     except AttributeError:
@@ -93,7 +92,6 @@ def create_item():
 def delete_item(id):
     item = db.session.query(Item).get(id)
     if not item:
-        # TODO: return 404 page
         return ('', 404)
 
     db.session.delete(item)
@@ -107,7 +105,6 @@ def delete_item(id):
 def update_item(id):
     item = db.session.query(Item).get(id)
     if not item:
-        # TODO: return 404 page
         return ('', 404)
 
     data = request.form
@@ -149,7 +146,6 @@ def create_item_page():
 def show_item_page(item_id):
     item = db.session.query(Item).get(item_id)
     if not item:
-        #TODO: 404 page
         return ('', 404)
 
     return render_template('show-item.html', item=item)
@@ -159,21 +155,31 @@ def show_item_page(item_id):
 def edit_item_page(item_id):
     item = db.session.query(Item).get(item_id)
     if not item:
-        #TODO: 404 page
         return ('', 404)
 
     return render_template('new-item.html', item=item)
 
 
 # JSON endpoints
-@app.route('/<string:category>/items')
+@app.route('/catalog/<string:category>/items.json')
 def list_items_for_category(category):
-    items = Item.list_by_category(category)
-    return json.dumps(items, default=lambda o: o.serialize)
+    items = [i.serialize for i in Item.list_by_category(category)]
+    return jsonify(items)
 
 
-@app.route('/catalog')
+@app.route('/catalog/categories.json')
 def list_categories():
+    categories = [c.category for c in db.session.query(Category).all()]
+    return jsonify(categories)
+
+
+@app.route('/catalog.json')
+def list_all():
     categories = db.session.query(Category).all()
-    return json.dumps(categories, default=lambda o: o.category)
+    all_catalog = {}
+    for c in categories:
+        items = [i.serialize for i in Item.list_by_category(c.category)]
+        all_catalog[c.category] = items
+
+    return jsonify({'catalog': all_catalog})
 

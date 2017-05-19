@@ -1,5 +1,3 @@
-window.UCatalog = window.UCatalog || {};
-
 if (!window.CURRENT_USER) {
   /**
    * Google and facebook Oauth providers
@@ -9,7 +7,7 @@ if (!window.CURRENT_USER) {
     function oauthConnect(provider, token) {
       $.ajax({
         type: 'POST',
-        url: '/oauth-connect/'+provider, // TODO: CSRF
+        url: '/oauth-connect/'+provider,
         processData: false,
         data: JSON.stringify({ token: token }),
         contentType: "application/json; charset=utf-8",
@@ -47,7 +45,9 @@ if (!window.CURRENT_USER) {
       if (authResult['code']) {
         oauthConnect('Google', authResult['code'])
       } else {
-        // TODO: not logged in
+        $("#result").html(
+          "Failed to login."
+        );
       }
     }
 
@@ -77,14 +77,19 @@ if (!window.CURRENT_USER) {
           var accessToken = response.authResponse.accessToken;
           oauthConnect('Facebook', accessToken)
         } else {
-          // TODO: not logged in
+          $("#result").html(
+            "Failed to login."
+          );
         }
       }, {scope: 'public_profile,email'});
     });
   })();
 }
 
-
+/**
+ * Fetch and show the items of the selected category.
+ * When clicking upon the selected category, shows the latest items
+ */
 (function() {
 
   var selectedClass = 'category-card__selected';
@@ -103,7 +108,7 @@ if (!window.CURRENT_USER) {
       return new Promise(function(resolve, reject) {
         $.ajax({
           type: 'GET',
-          url: '/'+category+'/items',
+          url: '/catalog/'+category+'/items.json',
           dataType: 'json',
           success: function(items) {
             __cache__[category] = items;
