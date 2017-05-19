@@ -49,20 +49,6 @@
   </header>
   <div class="container">
     <div id="content">
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        {% for flash in messages %}
-          <div class="flash-message__wrapper">
-            <div class="notification is-{{flash[1]}} flash-message">
-              <div class="container">
-                <button class="delete"></button>
-                <p class="has-text-centered">{{flash[0]}}</p>
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-       {% endif %}
-      {% endwith %}
     {% block content %}
     {% endblock %}
     </div>
