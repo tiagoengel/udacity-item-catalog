@@ -7,6 +7,12 @@ Base = declarative_base()
 
 
 class Item(db.Model):
+    """An Item in the catalog database.
+
+    Items titles have to be unique within their category.
+    The item category is just a string and to create a new category
+    the only thing needed is to create a new item with that category.
+    """
     __tablename__ = 'items'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255))
@@ -15,6 +21,13 @@ class Item(db.Model):
     inserted_at = db.Column(db.DateTime, default=datetime.now)
 
     def __init__(self, title, description, category):
+        """Creates a new item.
+
+        Args:
+            title (srt): the item title
+            description (srt): the item description
+            category (str): the item category
+        """
         self.title = title
         self.description = description
         self.category = category
@@ -39,6 +52,19 @@ class Item(db.Model):
 
 
 class Category(Base):
+    """A category in the catalog database.
+
+    Categories are a product of the `Items` in the database, they
+    are not created directly. Instead, to create a new category you
+    should insert a new `Item` in that category.
+
+    Example:
+
+        Item(title='title', description='desc', category='examples')
+
+        After inserting this item in the database, the category `examples`
+        will be available.
+    """
     __table__ = db.Table('categories',
                          Base.metadata,
                          db.Column('category', db.String(80), primary_key=True),

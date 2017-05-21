@@ -9,17 +9,40 @@ from catalog.auth import oauth, providers
 
 
 def protected_resource(fn):
+    """Decorator that protects a resource from being accessed
+    by an unauthenticated user.
+
+    Args:
+        fn (function): the function to be protected
+
+    Returns:
+        a new function that first check if the user is authenticated
+        before executing `fn`
+    """
     def inner(*args, **kwargs):
         if not session.get('user'):
             return ('', 401)
 
         return fn(*args, **kwargs)
 
+    # Flask tracks functions by their name, we have
+    # to keep the original name otherwise we'll run
+    # into naming conflicts
     inner.__name__ = fn.__name__
     return inner
 
 
 def validates_required(data, field, errors):
+    """Validates if a required field is present.
+
+    Args:
+        data (dict): data to check whether the field is present
+        field (str): the field name
+        errors (dict): dict where errors will be put
+
+    Returns:
+        `errors` containing `field` if `field` is not present
+    """
     if not data.get(field):
         errors[field] = 'This field is required'
 
