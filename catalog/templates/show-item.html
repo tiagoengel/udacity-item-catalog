@@ -4,10 +4,10 @@
 
 <div class="item">
   <div class="item__title">
-    <h1>{{ item.title }} <small>({{ item.category }})</small></h1>
-    {% if session.get('user') %}
+    <h1>{{ item.title }} <small>({{ item.category.description }})</small></h1>
+    {% if session.get('user') and item.owned_by(session['user']['local_id']) %}
       <div class="item__controls">
-        <a href="{{url_for('edit_item_page', item_id=item.id ) }}" class="btn btn-primary">Edit</a>
+        <a href="{{url_for('edit_item_page', id=item.id ) }}" class="btn btn-primary">Edit</a>
         <a data-toggle="modal" data-target="#delete-item-modal" href="#" class="btn btn-danger">Delete</a>
       </div>
     {% endif %}

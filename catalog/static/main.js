@@ -174,4 +174,12 @@ if (!window.CURRENT_USER) {
     });
   })
 
-}())
+}());
+
+
+// FLASHES
+$(function() {
+  setTimeout(function() {
+    $('.flashes .alert').remove();
+  }, 5000);
+});

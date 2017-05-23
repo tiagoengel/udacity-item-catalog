@@ -1,35 +1,53 @@
 import json
 
-from flask import make_response, session, request, redirect, render_template, url_for, jsonify
+from flask import make_response, session, request, redirect
+from flask import render_template, url_for, jsonify, flash
 from sqlalchemy.exc import IntegrityError
 
 from catalog import app, db
-from catalog.models import Item, Category
+from catalog.models import Item, Category, User
 from catalog.auth import oauth, providers
 
 
-def protected_resource(fn):
+def protected_resource(owner_only=False, table=Item):
     """Decorator that protects a resource from being accessed
-    by an unauthenticated user.
+    by an unauthenticated user or unauthorized users.
 
     Args:
-        fn (function): the function to be protected
+        owner_only (bool): indicates if authorization check should be performed.
+        table (db.Model): the table to check if the resource provided in the
+                          current url is owned by this user.
 
     Returns:
         a new function that first check if the user is authenticated
-        before executing `fn`
+        and unauthorized before executing the actual function
     """
-    def inner(*args, **kwargs):
-        if not session.get('user'):
-            return ('', 401)
+    def decorator(fn):
+        def inner(*args, **kwargs):
+            user = session.get('user')
+            if not user:
+                flash(u'You need to login before accessing this resource',
+                      'danger')
+                return redirect('/')
 
-        return fn(*args, **kwargs)
+            if owner_only:
+                id = kwargs.get('id') or args.get(0)
+                model = db.session.query(table).get(id)
+                if not model.owned_by(user['local_id']):
+                    flash(u"Only the resource's owner can execute this operation",  # noqa
+                         'danger')
+                    return redirect('/')
 
-    # Flask tracks functions by their name, we have
-    # to keep the original name otherwise we'll run
-    # into naming conflicts
-    inner.__name__ = fn.__name__
-    return inner
+            return fn(*args, **kwargs)
+
+        # Flask tracks functions by their name, we have
+        # to keep the original name otherwise we'll run
+        # into naming conflicts
+        decorator.__name__ = fn.__name__
+        inner.__name__ = fn.__name__
+        return inner
+
+    return decorator
 
 
 def validates_required(data, field, errors):
@@ -49,6 +67,10 @@ def validates_required(data, field, errors):
     return errors
 
 
+def current_user():
+    return db.session.query(User).get(session['user']['local_id'])
+
+
 @app.route('/oauth-connect/<string:provider_name>', methods=['POST'])
 def oauth_connect(provider_name):
     try:
@@ -60,6 +82,10 @@ def oauth_connect(provider_name):
     data = request.get_json()
     flow = oauth.OauthFlow(provider=provider.__new__(provider))
     user = flow.authenticate(data['token'])
+    user_data = user['user_data']
+    user_id = user_data.get('email') or user_data.get('user_id')
+    local_user = User.get_or_create(user['provider'], user_id)
+    user['local_id'] = local_user.id
     session['user'] = user
     return ('', 204)
 
@@ -79,7 +105,7 @@ def disconnect():
 
 
 @app.route('/items/create', methods=['POST'])
-@protected_resource
+@protected_resource()
 def create_item():
     data = request.form
     errors = {}
@@ -96,7 +122,8 @@ def create_item():
 
     new_item = Item(title=title,
                     description=description,
-                    category=category)
+                    category=Category.get_or_create(category),
+                    user=current_user())
     try:
         db.session.add(new_item)
         db.session.commit()
@@ -111,20 +138,26 @@ def create_item():
 
 
 @app.route('/items/<int:id>/delete', methods=['POST'])
-@protected_resource
+@protected_resource(owner_only=True)
 def delete_item(id):
     item = db.session.query(Item).get(id)
     if not item:
         return ('', 404)
 
+    category = item.category
+
     db.session.delete(item)
     db.session.commit()
+
+    if category.item_count() == 0:
+        db.session.delete(category)
+        db.session.commit()
 
     return redirect('/')
 
 
 @app.route('/items/<int:id>/update', methods=['POST'])
-@protected_resource
+@protected_resource(owner_only=True)
 def update_item(id):
     item = db.session.query(Item).get(id)
     if not item:
@@ -142,7 +175,7 @@ def update_item(id):
 
     item.title = data['title']
     item.description = data['description']
-    item.category = data['category']
+    item.category = Category.get_or_create(data['category'])
 
     db.session.add(item)
     db.session.commit()
@@ -161,6 +194,7 @@ def index():
 
 
 @app.route('/items/create')
+@protected_resource()
 def create_item_page():
     return render_template('new-item.html')
 
@@ -174,9 +208,10 @@ def show_item_page(item_id):
     return render_template('show-item.html', item=item)
 
 
-@app.route('/items/<int:item_id>/edit')
-def edit_item_page(item_id):
-    item = db.session.query(Item).get(item_id)
+@app.route('/items/<int:id>/edit')
+@protected_resource(owner_only=True)
+def edit_item_page(id):
+    item = db.session.query(Item).get(id)
     if not item:
         return ('', 404)
 
@@ -192,7 +227,7 @@ def list_items_for_category(category):
 
 @app.route('/catalog/categories.json')
 def list_categories():
-    categories = [c.category for c in db.session.query(Category).all()]
+    categories = [c.description for c in db.session.query(Category).all()]
     return jsonify(categories)
 
 

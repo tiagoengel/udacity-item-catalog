@@ -6,8 +6,8 @@
     <div class="row">
     {% for category in categories %}
       <div class="col-md-4 col-sm-6">
-        <div class="category-card" data-category="{{category.category}}">
-          <span class="category-card__item-title"> {{category.category}} </span>
+        <div class="category-card" data-category="{{category.description}}">
+          <span class="category-card__item-title"> {{category.description}} </span>
           <div class="category-card__item-count">
             <p>{{ category.item_count() }}</p>
             <p>items</p>
@@ -23,7 +23,7 @@
       <h2>Latest Items</h2>
       <ul>
       {% for item in latest_items %}
-        <li><a href="{{url_for('show_item_page', item_id=item.id ) }}">{{item.title}}</a> <small>({{item.category}}) </small></li>
+        <li><a href="{{url_for('show_item_page', item_id=item.id ) }}">{{item.title}}</a> <small>({{item.category.description}}) </small></li>
       {% endfor %}
       </ul>
     </div>

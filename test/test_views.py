@@ -10,7 +10,7 @@ from flask import session
 import catalog.views
 
 from catalog import app, db
-from catalog.models import Item
+from catalog.models import Item, Category, User
 from catalog.auth import providers
 from test import support, mocks
 
@@ -22,6 +22,8 @@ class FlaskTest(unittest.TestCase):
         app.secret_key = 'testing'
         db.session.rollback()
         db.session.query(Item).delete()
+        db.session.query(Category).delete()
+        db.session.query(User).delete()
         db.session.commit()
 
     def do_google_login(self):
@@ -79,10 +81,11 @@ class ItemsTest(FlaskTest):
 
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(db.session.query(Item).count(), 1)
+        self.assertEqual(db.session.query(Category).count(), 1)
         item = db.session.query(Item).first()
         self.assertEqual(item.title, 'Create item')
         self.assertEqual(item.description, 'Test item')
-        self.assertEqual(item.category, 'Test')
+        self.assertEqual(item.category.description, 'Test')
 
     def test_cant_create_if_not_logged_in(self):
         resp = self.app.post('/items/create',
@@ -90,7 +93,7 @@ class ItemsTest(FlaskTest):
                                        description='Test item',
                                        category='Test'))
 
-        self.assertEqual(resp.status_code, 401)
+        self.assertEqual(resp.status_code, 302)
 
     def test_cant_create_with_invalid_args(self):
         self.do_google_login()
@@ -101,8 +104,16 @@ class ItemsTest(FlaskTest):
 
     def test_delete(self):
         self.do_google_login()
-        db.session.add(Item(title='Foo', description='bar', category='FooBar'))
-        db.session.add(Item(title='Foo1', description='bar', category='FooBar'))
+        category = Category(description='FooBar')
+        user = db.session.query(User).first()
+        db.session.add(Item(title='Foo',
+                            description='bar',
+                            category=category,
+                            user=user))
+        db.session.add(Item(title='Foo1',
+                            description='bar',
+                            category=category,
+                            user=user))
         item = db.session.query(Item).first()
 
         resp = self.app.post('/items/%s/delete' % (item.id))
@@ -111,11 +122,16 @@ class ItemsTest(FlaskTest):
 
     def test_cant_delete_if_not_logged_in(self):
         resp = self.app.post('/items/1/delete')
-        self.assertEqual(resp.status_code, 401)
+        self.assertEqual(resp.status_code, 302)
 
     def test_update(self):
         self.do_google_login()
-        db.session.add(Item(title='Foo', description='bar', category='FooBar'))
+        category = Category(description='FooBar')
+        user = db.session.query(User).first()
+        db.session.add(Item(title='Foo',
+                            description='bar',
+                            category=category,
+                            user=user))
         item = db.session.query(Item).first()
 
         resp = self.app.post(('/items/%s/update' % (item.id)),
@@ -128,11 +144,11 @@ class ItemsTest(FlaskTest):
         item = db.session.query(Item).first()
         self.assertEqual(item.title, 'Create item')
         self.assertEqual(item.description, 'Test item')
-        self.assertEqual(item.category, 'Test')
+        self.assertEqual(item.category.description, 'Test')
 
     def test_cant_update_if_not_logged_in(self):
         resp = self.app.post('/items/1/update')
-        self.assertEqual(resp.status_code, 401)
+        self.assertEqual(resp.status_code, 302)
 
 
 

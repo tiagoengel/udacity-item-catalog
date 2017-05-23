@@ -1,5 +1,7 @@
 from catalog import db
-from catalog.models import Item
+from catalog.models import Item, Category, User
+
+user = User('admin', 'admin')
 
 default_desc = """
 Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
@@ -17,9 +19,11 @@ items = [['Stick', 'Hockey'],
          ['Soccer Cleats', 'Soccer']]
 
 for item in items:
+    category = Category.get_or_create(item[1])
     db.session.add(Item(title=item[0],
                         description=default_desc,
-                        category=item[1]))
+                        category=category,
+                        user=user))
 
 db.session.commit()
 
